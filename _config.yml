@@ -14,10 +14,9 @@
 # You can create any custom variable you would like, and they will be accessible
 # in the templates via {{ site.myvariable }}.
 title: stuff about stuff
-email: n'dot'n'at'cern'dot'ch
+email: niklas'at'nolte'dot'dev
 description: >- # this means to ignore newlines until "baseurl:"
-  innocent PhD @ LHCb @ CERN.
-  Lets see if i can get myself to write something meaningful
+  Physics PhD @ LHCb @ CERN
 baseurl: "" # the subpath of your site, e.g. /blog
 url: "" # the base hostname & protocol for your site, e.g. http://example.com
 github_username:  niklasnolte
@@ -26,7 +25,7 @@ github_username:  niklasnolte
 markdown: kramdown
 theme: minima
 plugins:
-  - jekyll-feed
+  #- jekyll-feed
 
 # Exclude from processing.
 # The following items will not be processed, by default. Create a custom list
