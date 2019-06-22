@@ -162,3 +162,4 @@ struct combinations<tup, 0, result> {
 };
 ```
 Thats it, much less code that i would have expected when starting this exercise.. :D
+See the example on [godbolt](https://godbolt.org/z/MUNVZd).
