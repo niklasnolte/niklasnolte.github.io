@@ -11,3 +11,4 @@ categories: jekyll update
 3. [LHCC Poster Session](https://indico.cern.ch/event/797774/contributions/3316748/attachments/1803283/2941932/LHCC_19_final.pdf)
 4. [DPG 2019 Aachen](https://www.dpg-verhandlungen.de/year/2019/conference/aachen/part/t/session/90/contribution/7)
 5. [ACAT 2019 Saas-Fee](https://indico.cern.ch/event/708041/contributions/3276199/)
+6. [CHEP 2019 Adelaide](https://indico.cern.ch/event/773049/contributions/3473309/)
