@@ -4,4 +4,4 @@ title: About
 permalink: /about/
 ---
 
-Placeholder
+Nothing to see here (yet)
