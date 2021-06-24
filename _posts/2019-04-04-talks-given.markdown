@@ -19,3 +19,4 @@ categories: jekyll update
 3. [A new scheduling algorithm for the LHCb upgrade trigger application](https://iopscience.iop.org/article/10.1088/1742-6596/1525/1/012052)
 4. [Configuration and scheduling of the LHCb trigger application](https://www.epj-conferences.org/articles/epjconf/abs/2020/21/epjconf_chep2020_05004/epjconf_chep2020_05004.html)
 5. [Evolution of the energy efficiency of LHCb's real-time processing](https://export.arxiv.org/abs/2106.07701)
+6. [Thesis: A Selection Framework for LHCb's Upgrade Trigger](https://cds.cern.ch/record/2765896)
