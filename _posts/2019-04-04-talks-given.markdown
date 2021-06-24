@@ -12,3 +12,10 @@ categories: jekyll update
 4. [DPG 2019 Aachen](https://www.dpg-verhandlungen.de/year/2019/conference/aachen/part/t/session/90/contribution/7)
 5. [ACAT 2019 Saas-Fee](https://indico.cern.ch/event/708041/contributions/3276199/)
 6. [CHEP 2019 Adelaide](https://indico.cern.ch/event/773049/contributions/3473309/)
+
+### Papers
+1. see [Google Scholar](https://scholar.google.com/citations?user=5elJ_uIAAAAJ&hl=de). Most of these papers are the combined effort of the LHCb collaboration.
+2. [New approaches for track reconstruction in LHCb's Vertex Locator](https://www.epj-conferences.org/articles/epjconf/abs/2019/19/epjconf_chep2018_01042/epjconf_chep2018_01042.html)
+3. [A new scheduling algorithm for the LHCb upgrade trigger application](https://iopscience.iop.org/article/10.1088/1742-6596/1525/1/012052)
+4. [Configuration and scheduling of the LHCb trigger application](https://www.epj-conferences.org/articles/epjconf/abs/2020/21/epjconf_chep2020_05004/epjconf_chep2020_05004.html)
+5. [Evolution of the energy efficiency of LHCb's real-time processing](https://export.arxiv.org/abs/2106.07701)
