@@ -4,4 +4,4 @@ title: About
 permalink: /about/
 ---
 
-Nothing to see here (yet)
+See my [CV]({{site.url}}/files/cv_13.pdf)
