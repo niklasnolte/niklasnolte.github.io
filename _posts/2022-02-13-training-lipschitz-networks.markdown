@@ -4,23 +4,25 @@ title:  "How to train your Lipschitz Network"
 categories: jekyll update
 ---
 
+{% include mathjax-support.html %}
+
 ## What are Lipschitz Networks?
 In my endeavours to try to make AI more safe and understandable, I make use of
 neural networks which I call "Lipschitz Networks" (even though this term is not
 consistently used in literature).
 
-Lipschitz networks constrain the gradient p-norm $$ \|\nabla_x f(x)\|_p $$ of your
+Lipschitz networks constrain the gradient p-norm $\|\nabla_x f(x)\|_p$ of your
 network with respect to the inputs to a maximum of your choice, lets say 1.  In
 practice, there are multiple ways to do this.
 The requirements for a suitable implementation are as follows:
-1. $$ \|\nabla_x f(x)\|_p \leq 1 $$.
-2. Can approximate every $$ f(x) $$ to arbitrary precision if 1. is fulfilled
+1. $\|\nabla_x f(x)\|_p \leq 1$.
+2. Can approximate every $f(x)$ to arbitrary precision if 1. is fulfilled
 
 ### The Layerwise Constraint
 One very safe or deterministic way of implementing requirement 1 is constraining the
 jacobian operator norm of each layer with respect to the input.  In fully
 connected networks, the weight matrices coincide with the jacobian, so it is
-convenient to constrain these directly, layerwise: $$ |W^i|_p \leq 1 \ \forall i $$
+convenient to constrain these directly, layerwise: $|W^i|_p \leq 1 \ \forall i$
 
 However, a layerwise constraints can overdo the trick.  Since the Lipschitz
 constant of a (fully connected) neural network is determined by the product of
@@ -32,8 +34,8 @@ gradient norm attenuation.
 ### The GroupSort activation
 The specific problem is the fact that the usual activation functions, while
 being Lipschitz-1, cannot maintain a maximum allowed gradient everywhere.
-For instance, if one neuron has a preactivation of $$ < 0 $$, ReLU will result in
-a gradient of 0 there and a possible $$ \| \nabla_x f(x) \| = 1 $$ is unachievable.
+For instance, if one neuron has a preactivation of $< 0$, ReLU will result in
+a gradient of 0 there and a possible $\| \nabla_x f(x) \| = 1$ is unachievable.
 {% cite anil2019sorting %} show this very nicely by trying to fit a layerwise constrained
 network with ReLU activation to the absolute value function. Spoiler: It does not work.
 
@@ -43,15 +45,14 @@ full sort operation, GroupSort(d/2) is the MaxMin operation.
 Since it is merely a permutation, it maintains gradient 1 everywhere, while being
 a sufficient nonlinearity to serve as activation. Together with a specific constraint,
 they are able to prove universal approximation of GroupSort Lipschitz networks!  
-The weight norm constraint to achieve p-normed Lipschitzness is:  
-<p style="text-align: center;">
+The weight norm constraint to achieve p-normed Lipschitzness is:
+
 $$
-\begin{align*}
+\begin{align}
 |W^1|_{p,\infty} &\leq 1 \\
 |W^i|_\infty &\leq 1 \ \ \forall \ i > 1
-\end{align*}
+\end{align}
 $$
-</p>
 
 ### Training the Lipschitz Network
 Ok, so let us train a Lipschitz network for some binary classification task!
