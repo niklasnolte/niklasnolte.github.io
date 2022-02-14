@@ -17,7 +17,7 @@ title: ls ~niklas/
 email: niklas'at'nolte'dot'dev
 description: >- # this means to ignore newlines until "baseurl:"
   Research Associate @ MIT, 
-  Former Physics PhD @ LHCb @ CERN
+  Previously Physics PhD @ LHCb @ CERN
 baseurl: "" # the subpath of your site, e.g. /blog
 url: "" # the base hostname & protocol for your site, e.g. http://example.com
 github_username:  niklasnolte
@@ -25,6 +25,8 @@ github_username:  niklasnolte
 # Build settings
 markdown: kramdown
 theme: minima
+plugins:
+  - jekyll-scholar
 
 # Exclude from processing.
 # The following items will not be processed, by default. Create a custom list
