@@ -5,7 +5,7 @@ permalink: /about/
 ---
 
 Hi there!  
-I'm Niklas, currently a Postdoc @[Meta AI (FAIR)](https://ai.meta.com), where I work on reasoning with structured data, cryptography and different types of interpretability.  
+I'm Niklas, currently a Postdoc @[Meta AI (FAIR)](https://ai.meta.com), where I work on memory in language models, reasoning with structured data, cryptography and different types of interpretability.  
 Previously I was an AI and Fundamental Physics Research Associate @[MIT](https://mit.edu), where I worked on interpretability and robustness, both researching in the AI space aswell as using gained insights for more trustable data collection in collider physics.  
 In 2021 I completed a PhD in Physics from [CERN](https://home.cern/),
 where I developed trigger & core software for the upgrade of the [LHCb experiment](https://lhcb.web.cern.ch/lhcb/).  
@@ -18,7 +18,7 @@ When not at work, you might find me playing video games, in the gym, outside, pl
 ### Papers
 *Last update: Feb 01, 2024*
 
-While at CERN and MIT, I was part of a large experimental physics collaboration, LHCb, which jointly publishes everything. I did not have significant contributions to the papers individually, but I was part of the team that developed the software and algorithms to be able to collect the data in the first place. This makes my [Scholar](https://scholar.google.com/citations?user=5elJ_uIAAAAJ&hl=de) page a little wonky, therefore I keep track here, where I actually worked on "the final product".
+While at CERN and MIT, I was part of a large experimental physics collaboration, LHCb, which jointly publishes everything. I did not have significant contributions to the papers individually, but I was part of the team that developed the software and algorithms to be able to collect the data in the first place. This makes my [Scholar](https://scholar.google.com/citations?user=5elJ_uIAAAAJ&hl=de) page a little wonky, therefore I keep track here, where I actually did a significant chunk of the things presented.
 - From Neurons to Neutrons: A Case Study in Interpretability (submitted to ICML, not yet public)
 - [Salsa Fresca: Angular Embeddings and Pre-Training for ML Attacks on Learning With Errors](https://arxiv.org/abs/2402.01082) (submitted to ICML)
 - [DiSK: A Diffusion Model for Structured Knowledge](https://arxiv.org/abs/2312.05253) (submitted to ICML)
