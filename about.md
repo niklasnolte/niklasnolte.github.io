@@ -16,10 +16,11 @@ See my [CV]({{site.url}}/files/cv_13.pdf) for more details.
 When not at work, you might find me playing video games, in the gym, outside, playing lasertag, skiing, biking or so.
 
 ### Papers
-*Last update: Feb 01, 2024*
+*Last update: Mar 25, 2024*
 
 While at CERN and MIT, I was part of a large experimental physics collaboration, LHCb, which jointly publishes everything. I did not have significant contributions to the papers individually, but I was part of the team that developed the software and algorithms to be able to collect the data in the first place. This makes my [Scholar](https://scholar.google.com/citations?user=5elJ_uIAAAAJ&hl=de) page a little wonky, therefore I keep track here, where I actually did a significant chunk of the things presented.
-- From Neurons to Neutrons: A Case Study in Interpretability (submitted to ICML, not yet public)
+- [The cool and the cruel: separating hard parts of LWE secrets](https://arxiv.org/abs/2403.10328) (submitted to AfricaCrypt)
+- From Neurons to Neutrons: A Case Study in Interpretability (submitted to ICML, not yet on arxiv)
 - [Salsa Fresca: Angular Embeddings and Pre-Training for ML Attacks on Learning With Errors](https://arxiv.org/abs/2402.01082) (submitted to ICML)
 - [DiSK: A Diffusion Model for Structured Knowledge](https://arxiv.org/abs/2312.05253) (submitted to ICML)
 - [NuCLR: Nuclear Co-Learned Representations](https://arxiv.org/abs/2306.06099v2)  (IMCL 2023 SynS&ML)
