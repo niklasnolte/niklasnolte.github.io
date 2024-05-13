@@ -19,10 +19,11 @@ When not at work, you might find me playing video games, in the gym, outside, pl
 *Last update: Mar 25, 2024*
 
 While at CERN and MIT, I was part of a large experimental physics collaboration, LHCb, which jointly publishes everything. I did not have significant contributions to the papers individually, but I was part of the team that developed the software and algorithms to be able to collect the data in the first place. This makes my [Scholar](https://scholar.google.com/citations?user=5elJ_uIAAAAJ&hl=de) page a little wonky, therefore I keep track here, where I actually did a significant chunk of the things presented.
-- [The cool and the cruel: separating hard parts of LWE secrets](https://arxiv.org/abs/2403.10328) (submitted to AfricaCrypt)
-- From Neurons to Neutrons: A Case Study in Interpretability (submitted to ICML, not yet on arxiv)
-- [Salsa Fresca: Angular Embeddings and Pre-Training for ML Attacks on Learning With Errors](https://arxiv.org/abs/2402.01082) (submitted to ICML)
-- [DiSK: A Diffusion Model for Structured Knowledge](https://arxiv.org/abs/2312.05253) (submitted to ICML)
+- [Memory Mosaics](https://arxiv.org/abs/2405.06394) (Preprint) {% comment %} - [Transforming the Bootstrap: Using Transformers to Compute Scattering Amplitudes in Planar N = 4 Super Yang-Mills Theory](https://arxiv.org/abs/2405.06107) (Preprint) {% endcomment %}
+- [The cool and the cruel: separating hard parts of LWE secrets](https://arxiv.org/abs/2403.10328) (AfricaCrypt)
+- From Neurons to Neutrons: A Case Study in Interpretability (ICML, not yet on arxiv)
+- [Salsa Fresca: Angular Embeddings and Pre-Training for ML Attacks on Learning With Errors](https://arxiv.org/abs/2402.01082) (Preprint)
+- [DiSK: A Diffusion Model for Structured Knowledge](https://arxiv.org/abs/2312.05253) (Preprint)
 - [NuCLR: Nuclear Co-Learned Representations](https://arxiv.org/abs/2306.06099v2)  (IMCL 2023 SynS&ML)
 - [Development of the Topological Trigger for LHCb Run 3](https://arxiv.org/abs/2306.09873) (ACAT)
 - [Finding NEEMo: Geometric Fitting using Neural Estimation of the Energy Movers Distance](https://arxiv.org/abs/2209.15624) (ML4PS NeurIPS)
