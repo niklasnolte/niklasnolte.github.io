@@ -15,7 +15,7 @@
 # in the templates via {{ site.myvariable }}.
 title: ls ~niklas/
 email: niklas'at'nolte'dot'dev
-description: "Postdoc @ Meta AI (FAIR), previously @ MIT and @ CERN"
+description: "RS @ Meta AI (FAIR), previously @ MIT and @ CERN"
 baseurl: "" # the subpath of your site, e.g. /blog
 url: "" # the base hostname & protocol for your site, e.g. http://example.com
 github_username:  niklasnolte

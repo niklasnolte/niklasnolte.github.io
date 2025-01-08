@@ -5,7 +5,7 @@ permalink: /about/
 ---
 
 Hi there!  
-I'm Niklas, currently a Postdoc @[Meta AI (FAIR)](https://ai.meta.com), where I work on memory in language models, reasoning with structured data, cryptography and different types of interpretability.  
+I'm Niklas, currently a Research Scientist @[Meta AI (FAIR)](https://ai.meta.com), where I work on memory in language models, reasoning with structured data, cryptography and different types of interpretability.  
 Previously I was an AI and Fundamental Physics Research Associate @[MIT](https://mit.edu), where I worked on interpretability and robustness, both researching in the AI space aswell as using gained insights for more trustable data collection in collider physics.  
 In 2021 I completed a PhD in Physics from [CERN](https://home.cern/),
 where I developed trigger & core software for the upgrade of the [LHCb experiment](https://lhcb.web.cern.ch/lhcb/).  
@@ -16,9 +16,14 @@ See my [CV]({{site.url}}/files/cv_13.pdf) for more details.
 When not at work, you might find me playing video games, in the gym, outside, playing lasertag, skiing, biking or so.
 
 ### Papers
-*Last update: Mar 25, 2024*
+*Last update: Jan 8, 2025*
 
-While at CERN and MIT, I was part of a large experimental physics collaboration, LHCb, which jointly publishes everything. I did not have significant contributions to the papers individually, but I was part of the team that developed the software and algorithms to be able to collect the data in the first place. This makes my [Scholar](https://scholar.google.com/citations?user=5elJ_uIAAAAJ&hl=de) page a little wonky, therefore I keep track here, where I actually did a significant chunk of the things presented.
+While at CERN and MIT, I was part of a large experimental physics collaboration, LHCb, which jointly publishes everything. I did not have direct contributions to the papers individually, but I was part of the team that developed the software and algorithms to be able to collect the data in the first place. This makes my [Scholar](https://scholar.google.com/citations?user=5elJ_uIAAAAJ&hl=de) page a little wonky, therefore I keep track here, where I contributed directly to the papers.
+
+- [A parallel algorithm for fast reconstruction of proton collisions on heterogeneous architectures](https://arxiv.org/abs/2412.14966) (Preprint)
+- [Transformers Can Navigate Mazes With Multi-Step Prediction](https://arxiv.org/abs/2412.05117)
+- [MagicPIG: LSH Sampling for Efficient LLM Generation](https://arxiv.org/abs/2410.16179)
+- [The Factorization Curse: Which Tokens You Predict Underlie the Reversal Curse and More](https://arxiv.org/abs/2406.05183) (NeurIPS)
 - [Memory Mosaics](https://arxiv.org/abs/2405.06394) (Preprint)
 - [Transforming the Bootstrap: Using Transformers to Compute Scattering Amplitudes in Planar N = 4 Super Yang-Mills Theory](https://arxiv.org/abs/2405.06107) (Preprint)
 - [The cool and the cruel: separating hard parts of LWE secrets](https://arxiv.org/abs/2403.10328) (AfricaCrypt)
