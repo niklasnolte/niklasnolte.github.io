@@ -3,42 +3,18 @@ name: Build and Deploy to Github Pages
 on:
   push:
     branches:
-      - master  # Adjust if using another branch
+      - master
 
 jobs:
   build_and_deploy:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout Repository
+        uses: actions/checkout@v4
 
-      # Set up the correct Ruby version (use a GitHub Pages compatible version)
-      - name: Set up Ruby
-        uses: ruby/setup-ruby@v1
+      # Use GitHub's dedicated Jekyll action which handles all dependencies
+      - name: Build and Deploy with Jekyll
+        uses: helaili/jekyll-action@v2
         with:
-          ruby-version: '3.1'  # Use a GitHub Pages-supported Ruby version
-          bundler-cache: true
-
-      # Use GitHub Actions' cache to speed up dependency installation
-      - uses: actions/cache@v4
-        with:
-          path: vendor/bundle
-          key: ${{ runner.os }}-gems-${{ hashFiles('**/Gemfile.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-gems-
-
-      # Install dependencies (Bundler and Jekyll)
-      - name: Install Dependencies
-        run: |
-          bundle install
-
-      # Use GitHub Deploy Action to build and deploy to GitHub Pages
-      - uses: jeffreytse/jekyll-deploy-action@v0.5.1
-        with:
-          provider: 'github'
           token: ${{ secrets.GITHUB_TOKEN }}
-          branch: 'gh-pages'
-          jekyll_src: './'
-          jekyll_cfg: '_config.yml'
-          jekyll_baseurl: ''
-          bundler_ver: '~> 2.4.0'  # Keep compatible with Ruby 3.x
-          pre_build_commands: 'apk add --no-cache build-base'
+          target_branch: 'gh-pages'
