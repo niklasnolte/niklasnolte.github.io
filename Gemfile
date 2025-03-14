@@ -31,3 +31,4 @@ gem "wdm", "~> 0.1.0" if Gem.win_platform?
 # Required for Ruby 3.0+
 gem "webrick", "~> 1.8"
 
+gem 'uri', '1.0.3', require: false

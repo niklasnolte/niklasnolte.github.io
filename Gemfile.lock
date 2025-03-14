@@ -121,6 +121,7 @@ DEPENDENCIES
   kramdown-parser-gfm
   minima (~> 2.5)
   tzinfo-data
+  uri (= 1.0.3)
   webrick (~> 1.8)
 
 BUNDLED WITH
