@@ -1,0 +1,383 @@
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.3.4">Jekyll</generator><link href="https://nolte.dev/feed.xml" rel="self" type="application/atom+xml" /><link href="https://nolte.dev/" rel="alternate" type="text/html" /><updated>2025-07-20T17:52:45+00:00</updated><id>https://nolte.dev/feed.xml</id><title type="html">ls ~niklas/</title><subtitle>RS @Anthropic, previously @Meta AI (FAIR), @MIT and @CERN</subtitle><entry><title type="html">How to train your Lipschitz Network</title><link href="https://nolte.dev/jekyll/update/2022/02/13/training-lipschitz-networks.html" rel="alternate" type="text/html" title="How to train your Lipschitz Network" /><published>2022-02-13T00:00:00+00:00</published><updated>2022-02-13T00:00:00+00:00</updated><id>https://nolte.dev/jekyll/update/2022/02/13/training-lipschitz-networks</id><content type="html" xml:base="https://nolte.dev/jekyll/update/2022/02/13/training-lipschitz-networks.html"><![CDATA[<script type="text/x-mathjax-config">
+MathJax.Hub.Config({
+    TeX: {
+      equationNumbers: {
+        autoNumber: "AMS"
+      }
+    },
+    tex2jax: {
+    inlineMath: [ ['$', '$'] ],
+    displayMath: [ ['$$', '$$'] ],
+    processEscapes: true,
+  }
+});
+MathJax.Hub.Register.MessageHook("Math Processing Error",function (message) {
+	  alert("Math Processing Error: "+message[1]);
+	});
+MathJax.Hub.Register.MessageHook("TeX Jax - parse error",function (message) {
+	  alert("Math Processing Error: "+message[1]);
+	});
+</script>
+
+<script type="text/javascript" async="" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-MML-AM_CHTML">
+</script>
+
+<h2 id="what-are-lipschitz-networks">What are Lipschitz Networks?</h2>
+<p>In my endeavours to try to make AI more safe and understandable, I make use of
+neural networks which I call “Lipschitz Networks” (even though this term is not
+consistently used in literature).</p>
+
+<p>Lipschitz networks constrain the gradient p-norm $|\nabla_x f(x)|_p$ of your
+network with respect to the inputs to a maximum of your choice, lets say 1.  In
+practice, there are multiple ways to do this.
+The requirements for a suitable implementation are as follows:</p>
+<ol>
+  <li>$|\nabla_x f(x)|_p \leq 1$.</li>
+  <li>Can approximate every $f(x)$ to arbitrary precision if 1. is fulfilled</li>
+</ol>
+
+<h3 id="the-layerwise-constraint">The Layerwise Constraint</h3>
+<p>One very safe or deterministic way of implementing requirement 1 is constraining the
+jacobian operator norm of each layer with respect to the input.  In fully
+connected networks, the weight matrices coincide with the jacobian, so it is
+convenient to constrain these directly, layerwise: $|W^i|_p \leq 1 \ \forall i$</p>
+
+<p>However, a layerwise constraints can overdo the trick.  Since the Lipschitz
+constant of a (fully connected) neural network is determined by the product of
+the jacobians and the lipschitz constants of the activations, a layerwise
+constraint easily accumulates into something that is much smaller than 1 and
+cannot recover the “full gradient”. <a class="citation" href="#anil2019sorting">(Anil et al., 2019)</a> refer to this as
+gradient norm attenuation.</p>
+
+<h3 id="the-groupsort-activation">The GroupSort activation</h3>
+<p>The specific problem is the fact that the usual activation functions, while
+being Lipschitz-1, cannot maintain a maximum allowed gradient everywhere.
+For instance, if one neuron has a preactivation of $&lt; 0$, ReLU will result in
+a gradient of 0 there and a possible $| \nabla_x f(x) | = 1$ is unachievable.
+<a class="citation" href="#anil2019sorting">(Anil et al., 2019)</a> show this very nicely by trying to fit a layerwise constrained
+network with ReLU activation to the absolute value function. Spoiler: It does not work.</p>
+
+<p>So they went ahead and derived a new activation function: <em>GroupSort</em>.  It sorts
+the preactivations within n subgroups of the input. Example: GroupSort(1) is the
+full sort operation, GroupSort(d/2) is the MaxMin operation.
+Since it is merely a permutation, it maintains gradient 1 everywhere, while being
+a sufficient nonlinearity to serve as activation. Together with a specific constraint,
+they are able to prove universal approximation of GroupSort Lipschitz networks!<br />
+The weight norm constraint to achieve p-normed Lipschitzness is:</p>
+
+\[\begin{align}
+|W^1|_{p,\infty} &amp;\leq 1 \\
+|W^i|_\infty &amp;\leq 1 \ \ \forall \ i &gt; 1
+\end{align}\]
+
+<h3 id="training-the-lipschitz-network">Training the Lipschitz Network</h3>
+<p>Ok, so let us train a Lipschitz network for some binary classification task!
+For training data, let’s use the two-moons dataset.  Using BCE as loss and Adam
+as optimizer, we can train a Lipschitz network with a Lipschitz constant of 1.
+We immediately see that the network is unable to achieve a good classification
+performance.</p>
+
+<p><img src="/files/images/two-moons-lipschitz-bce.png" alt="bce" width="50%" /></p>
+
+<p>The reason for this is not that the gradient is too constrained.  In fact, we
+should be able to achieve perfect classification performance with any Lipschitz
+constant &gt; 0, because the decision frontier is defined only by the sign of the
+output (or the sign of output - 0.5 if it’s in [0,1]), and the sign is
+scale invariant. So why does this not work?</p>
+
+<p>Recall how BCE works: It tries to maximize the margins, i.e. get the output for
+class 0 as close as possible to 0 and the output of class 1 as close as possible
+to 1. With a sigmoid as output activation, this means unbounded increase for
+the preactivations to minimize BCE.<br />
+In unconstrained networks, that is fine and actually desirable.  In a Lipschitz
+network, it is unadvisable to concentrate on margin maximization because, when
+the gradient is bounded, the objective may clash with the actual goal of
+classification: Maximizing accuracy.  A loss function that cares about margin
+maximization up until a certain point is much better suited here: Hinge loss!</p>
+
+<p><img src="/files/images/two-moons-lipschitz-hinge.png" alt="hinge" width="49%" /></p>
+
+<p>Hinge loss does not assign a penalty to training data outside of a margin of
+specified size, so the Lipschitz network can concentrate its efforts on
+optimizing the decision frontier.</p>
+
+<p>More on this when I find more time.</p>
+
+<h3 id="references">References</h3>
+<ol class="bibliography"><li><span id="anil2019sorting">Anil, C., Lucas, J., &amp; Grosse, R. (2019). <i>Sorting out Lipschitz function approximation</i>.</span></li></ol>]]></content><author><name></name></author><category term="jekyll" /><category term="update" /><summary type="html"><![CDATA[]]></summary></entry><entry><title type="html">SSHing into a VM hosted on a remote machine, i.e. how to use VSCode with a remotely hosted VM</title><link href="https://nolte.dev/jekyll/update/2021/07/05/vscode-and-remote-virtual-machines.html" rel="alternate" type="text/html" title="SSHing into a VM hosted on a remote machine, i.e. how to use VSCode with a remotely hosted VM" /><published>2021-07-05T16:00:00+00:00</published><updated>2021-07-05T16:00:00+00:00</updated><id>https://nolte.dev/jekyll/update/2021/07/05/vscode-and-remote-virtual-machines</id><content type="html" xml:base="https://nolte.dev/jekyll/update/2021/07/05/vscode-and-remote-virtual-machines.html"><![CDATA[<p>Did you ever want to develop software in a VM that is hosted on a remote machine?<br />
+If so, you probably didn’t consider this being a problem when using an editor like vim, which you install right on site.
+However, I try to use VSCode with the remote extension, and it expects to be able to directly connect via some SSH config into the target server.<br />
+Specifically, my setup is as follows: I host a VM with <a href="https://www.vagrantup.com/">Vagrant</a> (called <code class="language-plaintext highlighter-rouge">Y</code>) on a remote server (called <code class="language-plaintext highlighter-rouge">X</code>) and want to use VSCode on my local machine to connect to
+<code class="language-plaintext highlighter-rouge">Y</code>.</p>
+
+<p>Now, Vagrant in its default setting hosts a VM on <code class="language-plaintext highlighter-rouge">localhost:2222</code> which you can then<br />
+ssh to via <code class="language-plaintext highlighter-rouge">$ vagrant ssh</code>. With <code class="language-plaintext highlighter-rouge">$ vagrant ssh-config</code> you will get the ssh config used to
+connect to it. It looks something like this, which works well from the remote machine:</p>
+<div class="language-config highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">Host</span> <span class="n">default</span>
+  <span class="n">HostName</span> <span class="m">127</span>.<span class="m">0</span>.<span class="m">0</span>.<span class="m">1</span>
+  <span class="n">User</span> <span class="n">vagrant</span>
+  <span class="n">Port</span> <span class="m">2222</span>
+  <span class="n">UserKnownHostsFile</span> /<span class="n">dev</span>/<span class="n">null</span>
+  <span class="n">StrictHostKeyChecking</span> <span class="n">no</span>
+  <span class="n">PasswordAuthentication</span> <span class="n">no</span>
+  <span class="n">IdentityFile</span> /<span class="n">path</span>/<span class="n">to</span>/<span class="n">some</span>/<span class="n">generated</span>/<span class="n">private_key</span>
+  <span class="n">IdentitiesOnly</span> <span class="n">yes</span>
+  <span class="n">LogLevel</span> <span class="n">FATAL</span>
+</code></pre></div></div>
+<p>By pasting it into your <code class="language-plaintext highlighter-rouge">~/.ssh/config</code> you can then use <code class="language-plaintext highlighter-rouge">$ ssh default</code> to connect to it.
+However, this only works on the remote machine where you set the VM up.
+In order to connect to it from the outside, you need to somehow connect to the remote machine <code class="language-plaintext highlighter-rouge">X</code> at port
+<code class="language-plaintext highlighter-rouge">2222</code>, which is likely closed to the outside.
+The solution to this problem is a <code class="language-plaintext highlighter-rouge">ProxyJump</code>. <code class="language-plaintext highlighter-rouge">ProxyJump</code>s connect you to a remote machine via an intermediate “gateway” machine. The only unusual thing here is that the gateway machine is the same as the
+target, only a different port.</p>
+
+<p>So I tried something like this. Notice that I copied the private key to my local machine.</p>
+<div class="language-config highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># On local machine
+</span>
+<span class="n">Host</span> <span class="n">X</span>
+  <span class="n">HostName</span> <span class="n">X</span>.<span class="n">com</span>
+  <span class="n">User</span> <span class="n">nnolte</span>
+  ...
+
+<span class="n">Host</span> <span class="n">default</span>
+  <span class="n">HostName</span> <span class="n">X</span>.<span class="n">com</span>
+  <span class="n">User</span> <span class="n">vagrant</span>
+  <span class="n">Port</span> <span class="m">2222</span>
+  <span class="n">ProxyJump</span> <span class="n">X</span>
+  <span class="n">UserKnownHostsFile</span> /<span class="n">dev</span>/<span class="n">null</span>
+  <span class="n">StrictHostKeyChecking</span> <span class="n">no</span>
+  <span class="n">IdentityFile</span> <span class="n">path</span>/<span class="n">to</span>/<span class="n">copied</span>/<span class="n">private_key</span>
+</code></pre></div></div>
+
+<p>This did not work, gave me a connection refused, similar to when I tried directly connecting to port 2222.
+No expert, but probably because this still counts as an external connection.
+Funnily enough, swapping <code class="language-plaintext highlighter-rouge">HostName X.com</code> to <code class="language-plaintext highlighter-rouge">HostName localhost</code> turns out to be the solution:</p>
+
+<div class="language-config highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># On local machine
+</span>
+<span class="n">Host</span> <span class="n">X</span>
+  <span class="n">HostName</span> <span class="n">X</span>.<span class="n">com</span>
+  <span class="n">User</span> <span class="n">nnolte</span>
+  ...
+
+<span class="n">Host</span> <span class="n">default</span>
+  <span class="n">HostName</span> <span class="n">localhost</span> <span class="c"># NOT X.com
+</span>  <span class="n">User</span> <span class="n">vagrant</span>
+  <span class="n">Port</span> <span class="m">2222</span>
+  <span class="n">ProxyJump</span> <span class="n">X</span>
+  <span class="n">UserKnownHostsFile</span> /<span class="n">dev</span>/<span class="n">null</span>
+  <span class="n">StrictHostKeyChecking</span> <span class="n">no</span>
+  <span class="n">IdentityFile</span> <span class="n">path</span>/<span class="n">to</span>/<span class="n">copied</span>/<span class="n">private_key</span>
+</code></pre></div></div>
+<p>✨✨✨✨<br />
+Cool, this worked. I am no expert on SSH config, but I did not expect <code class="language-plaintext highlighter-rouge">localhost</code> to be interpreted “relative” to the <code class="language-plaintext highlighter-rouge">ProxyJump</code>.</p>
+
+<p>With this setup, you can connect to <code class="language-plaintext highlighter-rouge">default</code> from your local machine and use VSCode with the Remote extension as usual.</p>]]></content><author><name></name></author><category term="jekyll" /><category term="update" /><summary type="html"><![CDATA[Did you ever want to develop software in a VM that is hosted on a remote machine? If so, you probably didn’t consider this being a problem when using an editor like vim, which you install right on site. However, I try to use VSCode with the remote extension, and it expects to be able to directly connect via some SSH config into the target server. Specifically, my setup is as follows: I host a VM with Vagrant (called Y) on a remote server (called X) and want to use VSCode on my local machine to connect to Y.]]></summary></entry><entry><title type="html">Composing functions in Python</title><link href="https://nolte.dev/jekyll/update/2020/06/12/composing-functions.html" rel="alternate" type="text/html" title="Composing functions in Python" /><published>2020-06-12T14:00:00+00:00</published><updated>2020-06-12T14:00:00+00:00</updated><id>https://nolte.dev/jekyll/update/2020/06/12/composing-functions</id><content type="html" xml:base="https://nolte.dev/jekyll/update/2020/06/12/composing-functions.html"><![CDATA[<p>Learning a functional language is a very enjoyable experience. Haskell, in my
+case, is very different from imperative languages like C++ and Python. Even a
+“simple” thing like IO suddenly becomes a difficult piece of functionality. On
+the other hand, Haskell has some features that I miss elsewhere, like lazy
+evaluation or the way one can natively bind function arguments and compose
+functions.</p>
+
+<p>Well, function composition is something that seems achievable with Python:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">f</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+  <span class="k">return</span> <span class="n">x</span> <span class="o">-</span> <span class="mi">2</span>
+
+<span class="k">def</span> <span class="nf">g</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+  <span class="k">return</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">x</span>
+
+<span class="n">x</span> <span class="o">=</span> <span class="mi">7</span>
+
+<span class="c1"># now I want (g . f)
+</span><span class="n">g</span><span class="p">(</span><span class="n">f</span><span class="p">(</span><span class="n">x</span><span class="p">))</span> <span class="c1"># applied g on the output of f
+</span></code></pre></div></div>
+
+<p>What if i want to only compose, without immediate application?
+I just want the function that can be represented by h = (g . f)</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">x</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">10</span><span class="p">))</span>
+
+<span class="n">h</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span> <span class="p">:</span> <span class="n">g</span><span class="p">(</span><span class="n">f</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
+
+<span class="nb">map</span><span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span>
+</code></pre></div></div>
+<p>Ok, that works fine. What if i wanted to have the incredibly convenient syntax as haskell has it?
+What we need to do then is to override a binary operator to compose. How about <code class="language-plaintext highlighter-rouge">__mul__</code>?
+The problem: Builtins cannot be extended</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">compose</span><span class="p">(</span><span class="n">g</span><span class="p">,</span><span class="n">f</span><span class="p">):</span>
+  <span class="k">return</span> <span class="k">lambda</span> <span class="n">x</span> <span class="p">:</span> <span class="n">g</span><span class="p">(</span><span class="n">f</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
+
+<span class="nb">type</span><span class="p">(</span><span class="n">f</span><span class="p">).</span><span class="n">__mul__</span> <span class="o">=</span> <span class="n">compose</span>
+<span class="c1"># TypeError: can't set attributes of built-in/extension type 'function'
+</span></code></pre></div></div>
+
+<p>Fortunately for us, <a href="https://github.com/clarete">clarete</a> hacked around in the C-python bindings to make
+builtin extensions possible directly from python:
+<a href="https://github.com/clarete/forbiddenfruit">forbiddenfruit</a>. Whether or not that is a good idea, who knows?</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">forbiddenfruit</span> <span class="kn">import</span> <span class="n">curse</span>
+
+<span class="k">def</span> <span class="nf">f</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+  <span class="k">return</span> <span class="n">x</span> <span class="o">-</span> <span class="mi">2</span>
+
+<span class="k">def</span> <span class="nf">g</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+  <span class="k">return</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">x</span>
+
+<span class="n">curse</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">f</span><span class="p">),</span> <span class="s">'__mul__'</span><span class="p">,</span> <span class="n">compose</span><span class="p">)</span>
+
+<span class="n">x</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">10</span><span class="p">))</span>
+
+<span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">g</span><span class="o">*</span><span class="n">f</span><span class="p">,</span> <span class="n">x</span><span class="p">))</span>
+<span class="c1"># [-4, -2, 0, 2, 4, 6, 8, 10, 12, 14]
+</span></code></pre></div></div>
+
+<p>One can also compose more than functions, <code class="language-plaintext highlighter-rouge">h*g*f</code>, or adjust the compose function to take <code class="language-plaintext highlighter-rouge">*args</code> or <code class="language-plaintext highlighter-rouge">**kwargs</code>.</p>
+
+<p>What can you do with extended builtins?</p>]]></content><author><name></name></author><category term="jekyll" /><category term="update" /><summary type="html"><![CDATA[Learning a functional language is a very enjoyable experience. Haskell, in my case, is very different from imperative languages like C++ and Python. Even a “simple” thing like IO suddenly becomes a difficult piece of functionality. On the other hand, Haskell has some features that I miss elsewhere, like lazy evaluation or the way one can natively bind function arguments and compose functions.]]></summary></entry><entry><title type="html">All combinations of types in a tuple in C++</title><link href="https://nolte.dev/jekyll/update/2019/06/06/fun-with-tuples.html" rel="alternate" type="text/html" title="All combinations of types in a tuple in C++" /><published>2019-06-06T14:00:00+00:00</published><updated>2019-06-06T14:00:00+00:00</updated><id>https://nolte.dev/jekyll/update/2019/06/06/fun-with-tuples</id><content type="html" xml:base="https://nolte.dev/jekyll/update/2019/06/06/fun-with-tuples.html"><![CDATA[<h2 id="what">What?</h2>
+<p>We have a tuple of types</p>
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cp">#include</span> <span class="cpf">&lt;tuple&gt;</span><span class="cp">
+</span>
+<span class="k">template</span><span class="o">&lt;</span><span class="k">typename</span> <span class="o">...</span>  <span class="nc">Ts</span><span class="p">&gt;</span>
+<span class="k">using</span> <span class="n">t</span><span class="o">=</span><span class="n">std</span><span class="o">::</span><span class="n">tuple</span><span class="o">&lt;</span><span class="n">Ts</span><span class="p">...</span><span class="o">&gt;</span><span class="p">;</span>
+
+<span class="k">struct</span> <span class="nc">a</span><span class="p">{};</span>
+<span class="k">struct</span> <span class="nc">b</span><span class="p">{};</span>
+<span class="k">struct</span> <span class="nc">c</span><span class="p">{};</span>
+
+<span class="k">using</span> <span class="n">my_tuple</span> <span class="o">=</span> <span class="n">t</span><span class="o">&lt;</span><span class="n">a</span><span class="p">,</span><span class="n">b</span><span class="p">,</span><span class="n">c</span><span class="o">&gt;</span><span class="p">;</span>
+</code></pre></div></div>
+<p>and we would like to get all possible type combinations of length n, taken from this tuple.<br />
+That corresponds the nth power of cartesian products of the tuple.
+So, my result should look like this:</p>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">combinations</span><span class="o">&lt;</span><span class="n">my_tuple</span><span class="p">,</span> <span class="mi">2</span><span class="o">&gt;</span> <span class="c1">// returns t&lt;t&lt;t&lt;a,a&gt;, t&lt;a,b&gt;, t&lt;a,c&gt;&gt;,</span>
+                          <span class="c1">//           t&lt;t&lt;b,a&gt;, t&lt;b,b&gt;, t&lt;b,c&gt;&gt;,</span>
+                          <span class="c1">//           t&lt;t&lt;c,a&gt;, t&lt;c,b&gt;, t&lt;c,c&gt;&gt;&gt;</span>
+</code></pre></div></div>
+
+<h2 id="combinatorics-in-python">Combinatorics in python</h2>
+<p>I like to prototype algorithms in python first and then translate.. Less fiddling with details<br />
+One possible solution to do combinatorics looks like that:</p>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">combinations</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">res</span><span class="o">=</span><span class="p">[]):</span> 
+    <span class="k">if</span> <span class="n">n</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span> 
+        <span class="k">return</span> <span class="n">res</span> 
+    <span class="k">return</span> <span class="p">[</span><span class="n">combinations</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">n</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">res</span><span class="o">+</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">arr</span><span class="p">]</span>
+</code></pre></div></div>
+<p>It will recursively call combinations, “keeping track” of the current indices by appending them to the result and then returning when we have reached the desired dimension.</p>
+
+<h2 id="now-with-c-types">Now with C++ types</h2>
+
+<h3 id="check-all-the-types">Check all the types</h3>
+<p>There is a neat trick for checking which type you are currently fiddling with.<br />
+Declare some type that holds your type of interest and do not define it,<br />
+then gcc and clang give you a nice error if you try to instantiate one of these bad boys,<br />
+displaying your type nicely:</p>
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">template</span><span class="o">&lt;</span><span class="k">typename</span> <span class="o">...</span> <span class="nc">Ts</span><span class="p">&gt;</span>
+<span class="k">struct</span> <span class="nc">type_printer</span><span class="p">;</span>
+
+<span class="kt">int</span> <span class="nf">main</span> <span class="p">()</span> <span class="p">{</span>
+  <span class="n">type_printer</span><span class="o">&lt;</span><span class="n">my_tuple</span><span class="o">&gt;</span><span class="p">{};</span>
+<span class="p">}</span>
+</code></pre></div></div>
+<p>in gcc-9.1 gives</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>&lt;source&gt;: In function 'int main()':
+&lt;source&gt;:47:37: error: invalid use of incomplete type 'struct type_printer&lt;std::tuple&lt;a, b, c&gt; &gt;'
+   47 |     type_printer&lt;std::tuple&lt;a,b,c&gt;&gt;{};
+      |                                     ^
+&lt;source&gt;:5:8: note: declaration of 'struct type_printer&lt;std::tuple&lt;a, b, c&gt; &gt;'
+    5 | struct type_printer;
+      |        ^~~~~~~~~~~~
+</code></pre></div></div>
+
+<h3 id="recurse-in-the-type-system">Recurse in the type system</h3>
+<p>Recursing works fairly straight forward in the C++ type system.<br />
+You can see that in many parts of the STL and everywhere on StackOverflow.<br />
+Remember, we need something that refers to itself and some stopping condition.<br />
+A small example of recursion is something along the lines of <code class="language-plaintext highlighter-rouge">std::make_index_sequence</code>:</p>
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code>
+<span class="k">template</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="kt">size_t</span> <span class="p">...</span> <span class="n">Is</span><span class="p">&gt;</span>
+<span class="k">struct</span> <span class="nc">index_sequence</span><span class="p">{};</span>
+
+<span class="c1">//result... carries the ascending pack of integers</span>
+<span class="k">template</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="kt">size_t</span> <span class="n">n</span><span class="p">,</span> <span class="n">std</span><span class="o">::</span><span class="kt">size_t</span> <span class="p">...</span> <span class="n">result</span><span class="p">&gt;</span>
+<span class="k">struct</span> <span class="nc">make_index_sequence</span> <span class="p">{</span>
+    <span class="c1">//every time we iterate, we append n-1 to the result.</span>
+    <span class="k">using</span> <span class="n">type</span> <span class="o">=</span> <span class="k">typename</span> <span class="n">make_index_sequence</span><span class="o">&lt;</span><span class="n">n</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">n</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">result</span><span class="p">...</span><span class="o">&gt;::</span><span class="n">type</span><span class="p">;</span>
+
+<span class="p">};</span>
+
+<span class="c1">//stopping condition: we will not continue if we reached 0</span>
+<span class="k">template</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="kt">size_t</span> <span class="p">...</span> <span class="n">result</span><span class="p">&gt;</span>
+<span class="k">struct</span> <span class="nc">make_index_sequence</span><span class="o">&lt;</span><span class="mi">0</span><span class="p">,</span> <span class="n">result</span><span class="p">...</span><span class="o">&gt;</span> <span class="p">{</span>
+    <span class="k">using</span> <span class="n">type</span> <span class="o">=</span> <span class="n">index_sequence</span><span class="o">&lt;</span><span class="n">result</span><span class="p">...</span><span class="o">&gt;</span><span class="p">;</span>
+<span class="p">};</span>
+</code></pre></div></div>
+
+<h3 id="some-helpers">Some helpers</h3>
+<p>To concatenate and append to tuples types, we use these little helpers, making use of <code class="language-plaintext highlighter-rouge">std::tuple_cat</code> to determine the type:</p>
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">template</span> <span class="o">&lt;</span><span class="k">typename</span><span class="o">...</span> <span class="nc">tups</span><span class="p">&gt;</span>
+<span class="k">using</span> <span class="n">tuple_cat_t</span> <span class="o">=</span> <span class="k">decltype</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">tuple_cat</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">declval</span><span class="o">&lt;</span><span class="n">tups</span><span class="o">&gt;</span><span class="p">()...));</span>
+
+<span class="k">template</span> <span class="o">&lt;</span><span class="k">typename</span> <span class="nc">tup</span><span class="p">,</span> <span class="k">typename</span> <span class="nc">item</span><span class="p">&gt;</span>
+<span class="k">using</span> <span class="n">append</span> <span class="o">=</span> <span class="n">tuple_cat_t</span><span class="o">&lt;</span><span class="n">tup</span><span class="p">,</span> <span class="n">std</span><span class="o">::</span><span class="n">tuple</span><span class="o">&lt;</span><span class="n">item</span><span class="o">&gt;&gt;</span><span class="p">;</span>
+</code></pre></div></div>
+
+<p>We will also need to “iterate over tuples”, which is normally done via index sequences, therefore we define an index sequence with the length of a tuple:</p>
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">template</span> <span class="o">&lt;</span><span class="k">typename</span> <span class="nc">tup</span><span class="p">&gt;</span>
+<span class="k">using</span> <span class="n">index_sequence_for_tuple</span> <span class="o">=</span>
+    <span class="n">std</span><span class="o">::</span><span class="n">make_index_sequence</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">tuple_size_v</span><span class="o">&lt;</span><span class="n">tup</span><span class="o">&gt;&gt;</span><span class="p">;</span>
+</code></pre></div></div>
+
+<h3 id="element-wise-tuple-transformations">Element-wise tuple transformations</h3>
+<p>Now, we need a helper to execute one operation on each entry of a tuple and “return” a transformed tuple, very similar to <code class="language-plaintext highlighter-rouge">boost::hana::transform</code></p>
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">template</span> <span class="o">&lt;</span><span class="k">typename</span> <span class="nc">tup</span><span class="p">,</span>
+          <span class="k">template</span> <span class="o">&lt;</span><span class="k">typename</span><span class="p">&gt;</span> <span class="k">typename</span> <span class="nc">op</span><span class="p">,</span>
+          <span class="n">std</span><span class="o">::</span><span class="kt">size_t</span><span class="p">...</span> <span class="n">Is</span><span class="p">&gt;</span>
+<span class="k">auto</span> <span class="n">operate_t_impl</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">index_sequence</span><span class="o">&lt;</span><span class="n">Is</span><span class="p">...</span><span class="o">&gt;</span><span class="p">)</span>
+    <span class="o">-&gt;</span> <span class="n">std</span><span class="o">::</span><span class="n">tuple</span><span class="o">&lt;</span><span class="n">op</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">tuple_element_t</span><span class="o">&lt;</span><span class="n">Is</span><span class="p">,</span> <span class="n">tup</span><span class="o">&gt;&gt;</span><span class="p">...</span><span class="o">&gt;</span><span class="p">;</span>
+
+<span class="k">template</span> <span class="o">&lt;</span><span class="k">typename</span> <span class="nc">tup</span><span class="p">,</span> <span class="k">template</span> <span class="o">&lt;</span><span class="k">typename</span><span class="p">&gt;</span> <span class="k">typename</span> <span class="nc">op</span><span class="p">&gt;</span>
+<span class="k">using</span> <span class="n">operate_t</span> <span class="o">=</span> <span class="k">decltype</span><span class="p">(</span>
+    <span class="n">operate_t_impl</span><span class="o">&lt;</span><span class="n">tup</span><span class="p">,</span> <span class="n">op</span><span class="o">&gt;</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">declval</span><span class="o">&lt;</span><span class="n">index_sequence_for_tuple</span><span class="o">&lt;</span><span class="n">tup</span><span class="o">&gt;&gt;</span><span class="p">()));</span>
+</code></pre></div></div>
+
+<p>The usual way get a parameter pack of the types from a tuple is</p>
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">std</span><span class="o">::</span><span class="n">tuple_element_t</span><span class="o">&lt;</span><span class="n">Is</span><span class="o">&gt;</span><span class="p">(</span><span class="n">my_tup</span><span class="p">)...</span>
+</code></pre></div></div>
+<p><code class="language-plaintext highlighter-rouge">Is</code> is a parameter pack of the indices you want to gather the types from, so in our case all of them <code class="language-plaintext highlighter-rouge">0,1,2,3,4...</code>.<br />
+That is the reason for the existence of the helper <code class="language-plaintext highlighter-rouge">index_sequence_for_tuple</code>.<br />
+Since the <code class="language-plaintext highlighter-rouge">index_sequence</code> is no parameter pack as we need it for the tuple iteration,<br />
+we use a common trick involving function template argument deduction in <code class="language-plaintext highlighter-rouge">operate_t_impl</code>.<br />
+To get the <code class="language-plaintext highlighter-rouge">std::size_t ... Is</code> from our <code class="language-plaintext highlighter-rouge">index_sequence</code>, we give (a <code class="language-plaintext highlighter-rouge">std::declval</code> of) the sequence as function argument 
+and let the argument deduction deduce <code class="language-plaintext highlighter-rouge">std::size_t ... Is</code> for us.</p>
+
+<p>Ok, so now we can invoke “unary operations” (type-transformations) with a signature <code class="language-plaintext highlighter-rouge">template &lt;typename&gt; typename op</code> on all elements of the tuple,
+and “return” a result tuple. So to say, we just implemented poor mans <code class="language-plaintext highlighter-rouge">hana::transform</code>.</p>
+
+<h3 id="bring-stuff-together">Bring stuff together</h3>
+<p>Now we can perform elementwise transformations on a tuple and recurse, lets bring it together to perform our task:</p>
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">template</span> <span class="o">&lt;</span><span class="k">typename</span> <span class="nc">tup</span><span class="p">,</span> <span class="n">std</span><span class="o">::</span><span class="kt">size_t</span> <span class="n">n</span><span class="p">,</span> <span class="k">typename</span> <span class="nc">result</span> <span class="o">=</span> <span class="n">std</span><span class="o">::</span><span class="n">tuple</span><span class="o">&lt;</span><span class="p">&gt;</span><span class="o">&gt;</span>
+<span class="k">struct</span> <span class="nc">combinations</span> <span class="p">{</span>
+  <span class="c1">//this "operation" is conceptually similar to a unary lambda given in std::transform</span>
+  <span class="c1">//its python equivalent: combinations(arr, n-1, res+[i])</span>
+  <span class="k">template</span> <span class="o">&lt;</span><span class="k">typename</span> <span class="nc">item</span><span class="p">&gt;</span>
+  <span class="k">using</span> <span class="n">operation</span> <span class="o">=</span> <span class="k">typename</span> <span class="o">::</span><span class="n">combs</span><span class="o">&lt;</span><span class="n">tup</span><span class="p">,</span> <span class="n">n</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">append</span><span class="o">&lt;</span><span class="n">result</span><span class="p">,</span> <span class="n">item</span><span class="o">&gt;&gt;::</span><span class="n">type</span><span class="p">;</span>
+
+  <span class="c1">//this "loops" over the tuple, each time invoking operation, which takes care of the recursion</span>
+  <span class="c1">//its python equivalent: [operation for i in arr]</span>
+  <span class="k">using</span> <span class="n">type</span> <span class="o">=</span> <span class="n">operate_t</span><span class="o">&lt;</span><span class="n">tup</span><span class="p">,</span> <span class="n">operation</span><span class="o">&gt;</span><span class="p">;</span>
+<span class="p">};</span>
+</code></pre></div></div>
+<p>and the partial template specialization corresponding to the stopping condition:</p>
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">//its python equivalent: </span>
+<span class="c1">//    if n == 0: </span>
+<span class="c1">//        return res </span>
+<span class="k">template</span> <span class="o">&lt;</span><span class="k">typename</span> <span class="nc">tup</span><span class="p">,</span> <span class="k">typename</span> <span class="nc">result</span><span class="p">&gt;</span>
+<span class="k">struct</span> <span class="nc">combinations</span><span class="o">&lt;</span><span class="n">tup</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">result</span><span class="o">&gt;</span> <span class="p">{</span> 
+  <span class="k">using</span> <span class="n">type</span> <span class="o">=</span> <span class="n">result</span><span class="p">;</span>
+<span class="p">};</span>
+</code></pre></div></div>
+<p>Thats it, much less code that i would have expected when starting this exercise.. :D
+See the example on <a href="https://godbolt.org/z/MUNVZd">godbolt</a>.</p>]]></content><author><name></name></author><category term="jekyll" /><category term="update" /><summary type="html"><![CDATA[What? We have a tuple of types ```cpp #include]]></summary></entry></feed>

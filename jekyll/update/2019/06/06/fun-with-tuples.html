@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1"><!-- Begin Jekyll SEO tag v2.8.0 -->
+<title>All combinations of types in a tuple in C++ | ls ~niklas/</title>
+<meta name="generator" content="Jekyll v4.3.4" />
+<meta property="og:title" content="All combinations of types in a tuple in C++" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="What? We have a tuple of types ```cpp #include" />
+<meta property="og:description" content="What? We have a tuple of types ```cpp #include" />
+<link rel="canonical" href="https://nolte.dev/jekyll/update/2019/06/06/fun-with-tuples.html" />
+<meta property="og:url" content="https://nolte.dev/jekyll/update/2019/06/06/fun-with-tuples.html" />
+<meta property="og:site_name" content="ls ~niklas/" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2019-06-06T14:00:00+00:00" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:title" content="All combinations of types in a tuple in C++" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"BlogPosting","dateModified":"2019-06-06T14:00:00+00:00","datePublished":"2019-06-06T14:00:00+00:00","description":"What? We have a tuple of types ```cpp #include","headline":"All combinations of types in a tuple in C++","mainEntityOfPage":{"@type":"WebPage","@id":"https://nolte.dev/jekyll/update/2019/06/06/fun-with-tuples.html"},"url":"https://nolte.dev/jekyll/update/2019/06/06/fun-with-tuples.html"}</script>
+<!-- End Jekyll SEO tag -->
+<link rel="stylesheet" href="/assets/main.css"><link type="application/atom+xml" rel="alternate" href="https://nolte.dev/feed.xml" title="ls ~niklas/" /></head>
+<body><header class="site-header" role="banner">
+
+  <div class="wrapper"><a class="site-title" rel="author" href="/">ls ~niklas/</a><nav class="site-nav">
+        <input type="checkbox" id="nav-trigger" class="nav-trigger" />
+        <label for="nav-trigger">
+          <span class="menu-icon">
+            <svg viewBox="0 0 18 15" width="18px" height="15px">
+              <path d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.032C17.335,0,18,0.665,18,1.484L18,1.484z M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.032C17.335,6.031,18,6.696,18,7.516L18,7.516z M18,13.516C18,14.335,17.335,15,16.516,15H1.484 C0.665,15,0,14.335,0,13.516l0,0c0-0.82,0.665-1.483,1.484-1.483h15.032C17.335,12.031,18,12.695,18,13.516L18,13.516z"/>
+            </svg>
+          </span>
+        </label>
+
+        <div class="trigger"><a class="page-link" href="/about/">About me</a></div>
+      </nav></div>
+</header>
+<main class="page-content" aria-label="Content">
+      <div class="wrapper">
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+
+  <header class="post-header">
+    <h1 class="post-title p-name" itemprop="name headline">All combinations of types in a tuple in C++</h1>
+    <p class="post-meta">
+      <time class="dt-published" datetime="2019-06-06T14:00:00+00:00" itemprop="datePublished">Jun 6, 2019
+      </time></p>
+  </header>
+
+  <div class="post-content e-content" itemprop="articleBody">
+    <h2 id="what">What?</h2>
+<p>We have a tuple of types</p>
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cp">#include</span> <span class="cpf">&lt;tuple&gt;</span><span class="cp">
+</span>
+<span class="k">template</span><span class="o">&lt;</span><span class="k">typename</span> <span class="o">...</span>  <span class="nc">Ts</span><span class="p">&gt;</span>
+<span class="k">using</span> <span class="n">t</span><span class="o">=</span><span class="n">std</span><span class="o">::</span><span class="n">tuple</span><span class="o">&lt;</span><span class="n">Ts</span><span class="p">...</span><span class="o">&gt;</span><span class="p">;</span>
+
+<span class="k">struct</span> <span class="nc">a</span><span class="p">{};</span>
+<span class="k">struct</span> <span class="nc">b</span><span class="p">{};</span>
+<span class="k">struct</span> <span class="nc">c</span><span class="p">{};</span>
+
+<span class="k">using</span> <span class="n">my_tuple</span> <span class="o">=</span> <span class="n">t</span><span class="o">&lt;</span><span class="n">a</span><span class="p">,</span><span class="n">b</span><span class="p">,</span><span class="n">c</span><span class="o">&gt;</span><span class="p">;</span>
+</code></pre></div></div>
+<p>and we would like to get all possible type combinations of length n, taken from this tuple.<br />
+That corresponds the nth power of cartesian products of the tuple.
+So, my result should look like this:</p>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">combinations</span><span class="o">&lt;</span><span class="n">my_tuple</span><span class="p">,</span> <span class="mi">2</span><span class="o">&gt;</span> <span class="c1">// returns t&lt;t&lt;t&lt;a,a&gt;, t&lt;a,b&gt;, t&lt;a,c&gt;&gt;,</span>
+                          <span class="c1">//           t&lt;t&lt;b,a&gt;, t&lt;b,b&gt;, t&lt;b,c&gt;&gt;,</span>
+                          <span class="c1">//           t&lt;t&lt;c,a&gt;, t&lt;c,b&gt;, t&lt;c,c&gt;&gt;&gt;</span>
+</code></pre></div></div>
+
+<h2 id="combinatorics-in-python">Combinatorics in python</h2>
+<p>I like to prototype algorithms in python first and then translate.. Less fiddling with details<br />
+One possible solution to do combinatorics looks like that:</p>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">combinations</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">res</span><span class="o">=</span><span class="p">[]):</span> 
+    <span class="k">if</span> <span class="n">n</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span> 
+        <span class="k">return</span> <span class="n">res</span> 
+    <span class="k">return</span> <span class="p">[</span><span class="n">combinations</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">n</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">res</span><span class="o">+</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">arr</span><span class="p">]</span>
+</code></pre></div></div>
+<p>It will recursively call combinations, “keeping track” of the current indices by appending them to the result and then returning when we have reached the desired dimension.</p>
+
+<h2 id="now-with-c-types">Now with C++ types</h2>
+
+<h3 id="check-all-the-types">Check all the types</h3>
+<p>There is a neat trick for checking which type you are currently fiddling with.<br />
+Declare some type that holds your type of interest and do not define it,<br />
+then gcc and clang give you a nice error if you try to instantiate one of these bad boys,<br />
+displaying your type nicely:</p>
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">template</span><span class="o">&lt;</span><span class="k">typename</span> <span class="o">...</span> <span class="nc">Ts</span><span class="p">&gt;</span>
+<span class="k">struct</span> <span class="nc">type_printer</span><span class="p">;</span>
+
+<span class="kt">int</span> <span class="nf">main</span> <span class="p">()</span> <span class="p">{</span>
+  <span class="n">type_printer</span><span class="o">&lt;</span><span class="n">my_tuple</span><span class="o">&gt;</span><span class="p">{};</span>
+<span class="p">}</span>
+</code></pre></div></div>
+<p>in gcc-9.1 gives</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>&lt;source&gt;: In function 'int main()':
+&lt;source&gt;:47:37: error: invalid use of incomplete type 'struct type_printer&lt;std::tuple&lt;a, b, c&gt; &gt;'
+   47 |     type_printer&lt;std::tuple&lt;a,b,c&gt;&gt;{};
+      |                                     ^
+&lt;source&gt;:5:8: note: declaration of 'struct type_printer&lt;std::tuple&lt;a, b, c&gt; &gt;'
+    5 | struct type_printer;
+      |        ^~~~~~~~~~~~
+</code></pre></div></div>
+
+<h3 id="recurse-in-the-type-system">Recurse in the type system</h3>
+<p>Recursing works fairly straight forward in the C++ type system.<br />
+You can see that in many parts of the STL and everywhere on StackOverflow.<br />
+Remember, we need something that refers to itself and some stopping condition.<br />
+A small example of recursion is something along the lines of <code class="language-plaintext highlighter-rouge">std::make_index_sequence</code>:</p>
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code>
+<span class="k">template</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="kt">size_t</span> <span class="p">...</span> <span class="n">Is</span><span class="p">&gt;</span>
+<span class="k">struct</span> <span class="nc">index_sequence</span><span class="p">{};</span>
+
+<span class="c1">//result... carries the ascending pack of integers</span>
+<span class="k">template</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="kt">size_t</span> <span class="n">n</span><span class="p">,</span> <span class="n">std</span><span class="o">::</span><span class="kt">size_t</span> <span class="p">...</span> <span class="n">result</span><span class="p">&gt;</span>
+<span class="k">struct</span> <span class="nc">make_index_sequence</span> <span class="p">{</span>
+    <span class="c1">//every time we iterate, we append n-1 to the result.</span>
+    <span class="k">using</span> <span class="n">type</span> <span class="o">=</span> <span class="k">typename</span> <span class="n">make_index_sequence</span><span class="o">&lt;</span><span class="n">n</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">n</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">result</span><span class="p">...</span><span class="o">&gt;::</span><span class="n">type</span><span class="p">;</span>
+
+<span class="p">};</span>
+
+<span class="c1">//stopping condition: we will not continue if we reached 0</span>
+<span class="k">template</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="kt">size_t</span> <span class="p">...</span> <span class="n">result</span><span class="p">&gt;</span>
+<span class="k">struct</span> <span class="nc">make_index_sequence</span><span class="o">&lt;</span><span class="mi">0</span><span class="p">,</span> <span class="n">result</span><span class="p">...</span><span class="o">&gt;</span> <span class="p">{</span>
+    <span class="k">using</span> <span class="n">type</span> <span class="o">=</span> <span class="n">index_sequence</span><span class="o">&lt;</span><span class="n">result</span><span class="p">...</span><span class="o">&gt;</span><span class="p">;</span>
+<span class="p">};</span>
+</code></pre></div></div>
+
+<h3 id="some-helpers">Some helpers</h3>
+<p>To concatenate and append to tuples types, we use these little helpers, making use of <code class="language-plaintext highlighter-rouge">std::tuple_cat</code> to determine the type:</p>
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">template</span> <span class="o">&lt;</span><span class="k">typename</span><span class="o">...</span> <span class="nc">tups</span><span class="p">&gt;</span>
+<span class="k">using</span> <span class="n">tuple_cat_t</span> <span class="o">=</span> <span class="k">decltype</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">tuple_cat</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">declval</span><span class="o">&lt;</span><span class="n">tups</span><span class="o">&gt;</span><span class="p">()...));</span>
+
+<span class="k">template</span> <span class="o">&lt;</span><span class="k">typename</span> <span class="nc">tup</span><span class="p">,</span> <span class="k">typename</span> <span class="nc">item</span><span class="p">&gt;</span>
+<span class="k">using</span> <span class="n">append</span> <span class="o">=</span> <span class="n">tuple_cat_t</span><span class="o">&lt;</span><span class="n">tup</span><span class="p">,</span> <span class="n">std</span><span class="o">::</span><span class="n">tuple</span><span class="o">&lt;</span><span class="n">item</span><span class="o">&gt;&gt;</span><span class="p">;</span>
+</code></pre></div></div>
+
+<p>We will also need to “iterate over tuples”, which is normally done via index sequences, therefore we define an index sequence with the length of a tuple:</p>
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">template</span> <span class="o">&lt;</span><span class="k">typename</span> <span class="nc">tup</span><span class="p">&gt;</span>
+<span class="k">using</span> <span class="n">index_sequence_for_tuple</span> <span class="o">=</span>
+    <span class="n">std</span><span class="o">::</span><span class="n">make_index_sequence</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">tuple_size_v</span><span class="o">&lt;</span><span class="n">tup</span><span class="o">&gt;&gt;</span><span class="p">;</span>
+</code></pre></div></div>
+
+<h3 id="element-wise-tuple-transformations">Element-wise tuple transformations</h3>
+<p>Now, we need a helper to execute one operation on each entry of a tuple and “return” a transformed tuple, very similar to <code class="language-plaintext highlighter-rouge">boost::hana::transform</code></p>
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">template</span> <span class="o">&lt;</span><span class="k">typename</span> <span class="nc">tup</span><span class="p">,</span>
+          <span class="k">template</span> <span class="o">&lt;</span><span class="k">typename</span><span class="p">&gt;</span> <span class="k">typename</span> <span class="nc">op</span><span class="p">,</span>
+          <span class="n">std</span><span class="o">::</span><span class="kt">size_t</span><span class="p">...</span> <span class="n">Is</span><span class="p">&gt;</span>
+<span class="k">auto</span> <span class="n">operate_t_impl</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">index_sequence</span><span class="o">&lt;</span><span class="n">Is</span><span class="p">...</span><span class="o">&gt;</span><span class="p">)</span>
+    <span class="o">-&gt;</span> <span class="n">std</span><span class="o">::</span><span class="n">tuple</span><span class="o">&lt;</span><span class="n">op</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">tuple_element_t</span><span class="o">&lt;</span><span class="n">Is</span><span class="p">,</span> <span class="n">tup</span><span class="o">&gt;&gt;</span><span class="p">...</span><span class="o">&gt;</span><span class="p">;</span>
+
+<span class="k">template</span> <span class="o">&lt;</span><span class="k">typename</span> <span class="nc">tup</span><span class="p">,</span> <span class="k">template</span> <span class="o">&lt;</span><span class="k">typename</span><span class="p">&gt;</span> <span class="k">typename</span> <span class="nc">op</span><span class="p">&gt;</span>
+<span class="k">using</span> <span class="n">operate_t</span> <span class="o">=</span> <span class="k">decltype</span><span class="p">(</span>
+    <span class="n">operate_t_impl</span><span class="o">&lt;</span><span class="n">tup</span><span class="p">,</span> <span class="n">op</span><span class="o">&gt;</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">declval</span><span class="o">&lt;</span><span class="n">index_sequence_for_tuple</span><span class="o">&lt;</span><span class="n">tup</span><span class="o">&gt;&gt;</span><span class="p">()));</span>
+</code></pre></div></div>
+
+<p>The usual way get a parameter pack of the types from a tuple is</p>
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">std</span><span class="o">::</span><span class="n">tuple_element_t</span><span class="o">&lt;</span><span class="n">Is</span><span class="o">&gt;</span><span class="p">(</span><span class="n">my_tup</span><span class="p">)...</span>
+</code></pre></div></div>
+<p><code class="language-plaintext highlighter-rouge">Is</code> is a parameter pack of the indices you want to gather the types from, so in our case all of them <code class="language-plaintext highlighter-rouge">0,1,2,3,4...</code>.<br />
+That is the reason for the existence of the helper <code class="language-plaintext highlighter-rouge">index_sequence_for_tuple</code>.<br />
+Since the <code class="language-plaintext highlighter-rouge">index_sequence</code> is no parameter pack as we need it for the tuple iteration,<br />
+we use a common trick involving function template argument deduction in <code class="language-plaintext highlighter-rouge">operate_t_impl</code>.<br />
+To get the <code class="language-plaintext highlighter-rouge">std::size_t ... Is</code> from our <code class="language-plaintext highlighter-rouge">index_sequence</code>, we give (a <code class="language-plaintext highlighter-rouge">std::declval</code> of) the sequence as function argument 
+and let the argument deduction deduce <code class="language-plaintext highlighter-rouge">std::size_t ... Is</code> for us.</p>
+
+<p>Ok, so now we can invoke “unary operations” (type-transformations) with a signature <code class="language-plaintext highlighter-rouge">template &lt;typename&gt; typename op</code> on all elements of the tuple,
+and “return” a result tuple. So to say, we just implemented poor mans <code class="language-plaintext highlighter-rouge">hana::transform</code>.</p>
+
+<h3 id="bring-stuff-together">Bring stuff together</h3>
+<p>Now we can perform elementwise transformations on a tuple and recurse, lets bring it together to perform our task:</p>
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">template</span> <span class="o">&lt;</span><span class="k">typename</span> <span class="nc">tup</span><span class="p">,</span> <span class="n">std</span><span class="o">::</span><span class="kt">size_t</span> <span class="n">n</span><span class="p">,</span> <span class="k">typename</span> <span class="nc">result</span> <span class="o">=</span> <span class="n">std</span><span class="o">::</span><span class="n">tuple</span><span class="o">&lt;</span><span class="p">&gt;</span><span class="o">&gt;</span>
+<span class="k">struct</span> <span class="nc">combinations</span> <span class="p">{</span>
+  <span class="c1">//this "operation" is conceptually similar to a unary lambda given in std::transform</span>
+  <span class="c1">//its python equivalent: combinations(arr, n-1, res+[i])</span>
+  <span class="k">template</span> <span class="o">&lt;</span><span class="k">typename</span> <span class="nc">item</span><span class="p">&gt;</span>
+  <span class="k">using</span> <span class="n">operation</span> <span class="o">=</span> <span class="k">typename</span> <span class="o">::</span><span class="n">combs</span><span class="o">&lt;</span><span class="n">tup</span><span class="p">,</span> <span class="n">n</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">append</span><span class="o">&lt;</span><span class="n">result</span><span class="p">,</span> <span class="n">item</span><span class="o">&gt;&gt;::</span><span class="n">type</span><span class="p">;</span>
+
+  <span class="c1">//this "loops" over the tuple, each time invoking operation, which takes care of the recursion</span>
+  <span class="c1">//its python equivalent: [operation for i in arr]</span>
+  <span class="k">using</span> <span class="n">type</span> <span class="o">=</span> <span class="n">operate_t</span><span class="o">&lt;</span><span class="n">tup</span><span class="p">,</span> <span class="n">operation</span><span class="o">&gt;</span><span class="p">;</span>
+<span class="p">};</span>
+</code></pre></div></div>
+<p>and the partial template specialization corresponding to the stopping condition:</p>
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">//its python equivalent: </span>
+<span class="c1">//    if n == 0: </span>
+<span class="c1">//        return res </span>
+<span class="k">template</span> <span class="o">&lt;</span><span class="k">typename</span> <span class="nc">tup</span><span class="p">,</span> <span class="k">typename</span> <span class="nc">result</span><span class="p">&gt;</span>
+<span class="k">struct</span> <span class="nc">combinations</span><span class="o">&lt;</span><span class="n">tup</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">result</span><span class="o">&gt;</span> <span class="p">{</span> 
+  <span class="k">using</span> <span class="n">type</span> <span class="o">=</span> <span class="n">result</span><span class="p">;</span>
+<span class="p">};</span>
+</code></pre></div></div>
+<p>Thats it, much less code that i would have expected when starting this exercise.. :D
+See the example on <a href="https://godbolt.org/z/MUNVZd">godbolt</a>.</p>
+
+  </div><a class="u-url" href="/jekyll/update/2019/06/06/fun-with-tuples.html" hidden></a>
+</article>
+
+      </div>
+    </main><footer class="site-footer h-card">
+  <data class="u-url" href="/"></data>
+
+  <div class="wrapper">
+
+    <h2 class="footer-heading">ls ~niklas/</h2>
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col footer-col-1">
+        <ul class="contact-list">
+          <li class="p-name">ls ~niklas/</li><li><a class="u-email" href="mailto:niklas'at'nolte'dot'dev">niklas'at'nolte'dot'dev</a></li></ul>
+      </div>
+
+      <div class="footer-col footer-col-2"><ul class="social-media-list"><li><a href="https://github.com/niklasnolte"><svg class="svg-icon"><use xlink:href="/assets/minima-social-icons.svg#github"></use></svg> <span class="username">niklasnolte</span></a></li></ul>
+</div>
+
+      <div class="footer-col footer-col-3">
+        <p>RS @Anthropic, previously @Meta AI (FAIR), @MIT and @CERN</p>
+      </div>
+    </div>
+
+  </div>
+
+</footer>
+</body>
+
+</html>
