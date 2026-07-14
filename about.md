@@ -5,7 +5,7 @@ permalink: /about/
 ---
 
 Hi there!  
-I'm Niklas, currently a Researcher @[Anthropic](https://www.anthropic.com/), where I work on Finetuning.
+I'm Niklas, currently a Researcher working on Finetuning.
 Before that, I was a Research Scientist @[Meta AI (FAIR)](https://ai.meta.com), working on memory in language models, reasoning with structured data, cryptography and different types of interpretability.  
 From 2021-2023, I was a Physics + AI postdoc @[MIT](https://mit.edu), where I worked on interpretability and robustness, both researching in the AI space aswell as using gained insights for more trustable data collection in collider physics.  
 In 2021 I completed a PhD in Physics from [CERN](https://home.cern/),
